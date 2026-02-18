@@ -131,7 +131,7 @@ export function GalleryView() {
                 </p>
                 
                 {/* Hover buttons */}
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity md:opacity-0 opacity-100">
                   <button
                     onClick={() => setViewingEntry(entry)}
                     className="p-3 bg-white border-2 border-[#F4A7B9]/50 rounded-lg hover:bg-[#F4A7B9]/20 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center shadow-md"
