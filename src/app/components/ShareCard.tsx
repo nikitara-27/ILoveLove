@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import html2canvas from "html2canvas";
-import { Download, Share2, Instagram, Facebook } from "lucide-react";
+import { Download, Share2, Instagram, Facebook, Globe } from "lucide-react";
+import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 export function ShareCard({
   prompt,
@@ -18,7 +19,45 @@ export function ShareCard({
   const [isCapturing, setIsCapturing] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>("");
   const [showSocialOptions, setShowSocialOptions] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [posted, setPosted] = useState(false);
   const cardContainerRef = useRef<HTMLDivElement>(null);
+
+  const sharePublicly = async () => {
+    setIsPosting(true);
+    
+    try {
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-b898e3c0/reflections`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            prompt,
+            answer,
+            color,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to post reflection");
+      }
+
+      setPosted(true);
+      setTimeout(() => {
+        onClose();
+      }, 2000);
+    } catch (error) {
+      console.error("Error posting reflection:", error);
+      alert("Failed to share publicly. Please try again.");
+    } finally {
+      setIsPosting(false);
+    }
+  };
 
   const captureImage = async (): Promise<string | null> => {
     if (!cardContainerRef.current) return null;
@@ -248,6 +287,15 @@ export function ShareCard({
         <p className="text-[12px] text-center mt-3 opacity-60 font-['Cutive_Mono',monospace] text-[#4A3528]">
           On mobile: Opens native share menu • On desktop: Choose social app
         </p>
+        
+        <button
+          onClick={sharePublicly}
+          disabled={isPosting || posted}
+          className="mt-3 w-full bg-[#F4A7B9] text-[#4A3528] py-3 px-6 rounded-lg hover:bg-[#F4A7B9]/80 transition-colors font-['Cutive_Mono',monospace] min-h-[44px] flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          <Globe className="w-5 h-5" />
+          <span>{isPosting ? "Posting..." : posted ? "Posted!" : "Share Publicly"}</span>
+        </button>
       </div>
     </div>
   );

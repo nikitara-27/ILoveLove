@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Eye, Share2 } from "lucide-react";
+import { ArrowLeft, Eye, Share2, Globe } from "lucide-react";
 import { PROMPTS, JournalEntry } from "../types";
 import { ShareCard } from "../components/ShareCard";
 
@@ -33,15 +33,24 @@ export function GalleryView() {
   return (
     <div className="min-h-screen bg-[#FDF6EE] text-[#4A3528] font-['Cutive_Mono',monospace]">
       {/* Header */}
-      <header className="px-6 py-6 flex items-center gap-4 sticky top-0 bg-[#FDF6EE] border-b border-[#F4A7B9]/20">
+      <header className="px-6 py-6 flex items-center justify-between sticky top-0 bg-[#FDF6EE] border-b border-[#F4A7B9]/20">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/journal")}
+            className="p-3 hover:bg-[#F4A7B9]/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Back to journal"
+          >
+            <ArrowLeft className="w-6 h-6 text-[#4A3528]" />
+          </button>
+          <h1 className="text-[20px]">Your Reflections</h1>
+        </div>
         <button
-          onClick={() => navigate("/journal")}
+          onClick={() => navigate("/feed")}
           className="p-3 hover:bg-[#F4A7B9]/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="Back to journal"
+          aria-label="Browse love stories"
         >
-          <ArrowLeft className="w-6 h-6 text-[#4A3528]" />
+          <Globe className="w-6 h-6 text-[#4A3528]" />
         </button>
-        <h1 className="text-[20px]">Your Reflections</h1>
       </header>
 
       {/* Gallery content */}

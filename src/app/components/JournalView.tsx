@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { PROMPTS, JournalEntry } from "../types";
-import { Book, Share2, Home } from "lucide-react";
+import { Book, Share2, Home, Globe } from "lucide-react";
 import { ShareCard } from "./ShareCard";
 
 export function JournalView() {
@@ -121,13 +121,22 @@ export function JournalView() {
       {/* Header */}
       <header className="px-6 py-6 flex items-center justify-between">
         <h1 className="text-[20px]">ILoveLove</h1>
-        <button
-          onClick={() => navigate("/gallery")}
-          className="p-3 hover:bg-[#F4A7B9]/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
-          aria-label="View gallery"
-        >
-          <Book className="w-6 h-6 text-[#4A3528]" />
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => navigate("/feed")}
+            className="p-3 hover:bg-[#F4A7B9]/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="View public feed"
+          >
+            <Globe className="w-6 h-6 text-[#4A3528]" />
+          </button>
+          <button
+            onClick={() => navigate("/gallery")}
+            className="p-3 hover:bg-[#F4A7B9]/20 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="View gallery"
+          >
+            <Book className="w-6 h-6 text-[#4A3528]" />
+          </button>
+        </div>
       </header>
 
       {/* Main content */}
