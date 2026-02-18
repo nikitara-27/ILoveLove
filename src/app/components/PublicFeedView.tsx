@@ -10,6 +10,7 @@ interface PublicReflection {
   color: string;
   timestamp: number;
   date: string;
+  likes: number;
 }
 
 export function PublicFeedView() {
@@ -17,9 +18,13 @@ export function PublicFeedView() {
   const [reflections, setReflections] = useState<PublicReflection[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchReflections();
+    // Load liked posts from localStorage
+    const liked = JSON.parse(localStorage.getItem("liked_posts") || "[]");
+    setLikedPosts(new Set(liked));
   }, []);
 
   const fetchReflections = async () => {
@@ -45,6 +50,92 @@ export function PublicFeedView() {
       setError("Unable to load reflections. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLike = async (reflectionId: string) => {
+    const isLiked = likedPosts.has(reflectionId);
+    
+    if (isLiked) {
+      // Unlike
+      setReflections((prev) =>
+        prev.map((r) =>
+          r.id === reflectionId ? { ...r, likes: Math.max(0, r.likes - 1) } : r
+        )
+      );
+
+      const newLikedPosts = new Set(likedPosts);
+      newLikedPosts.delete(reflectionId);
+      setLikedPosts(newLikedPosts);
+      localStorage.setItem("liked_posts", JSON.stringify([...newLikedPosts]));
+
+      try {
+        const response = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-b898e3c0/reflections/${reflectionId}/unlike`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${publicAnonKey}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to unlike reflection");
+        }
+      } catch (err) {
+        console.error("Error unliking reflection:", err);
+        // Revert on error
+        setReflections((prev) =>
+          prev.map((r) =>
+            r.id === reflectionId ? { ...r, likes: r.likes + 1 } : r
+          )
+        );
+        const revertedLiked = new Set(likedPosts);
+        revertedLiked.add(reflectionId);
+        setLikedPosts(revertedLiked);
+        localStorage.setItem("liked_posts", JSON.stringify([...revertedLiked]));
+      }
+    } else {
+      // Like
+      setReflections((prev) =>
+        prev.map((r) =>
+          r.id === reflectionId ? { ...r, likes: r.likes + 1 } : r
+        )
+      );
+
+      const newLikedPosts = new Set(likedPosts);
+      newLikedPosts.add(reflectionId);
+      setLikedPosts(newLikedPosts);
+      localStorage.setItem("liked_posts", JSON.stringify([...newLikedPosts]));
+
+      try {
+        const response = await fetch(
+          `https://${projectId}.supabase.co/functions/v1/make-server-b898e3c0/reflections/${reflectionId}/like`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${publicAnonKey}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to like reflection");
+        }
+      } catch (err) {
+        console.error("Error liking reflection:", err);
+        // Revert on error
+        setReflections((prev) =>
+          prev.map((r) =>
+            r.id === reflectionId ? { ...r, likes: r.likes - 1 } : r
+          )
+        );
+        const revertedLiked = new Set(likedPosts);
+        revertedLiked.delete(reflectionId);
+        setLikedPosts(revertedLiked);
+        localStorage.setItem("liked_posts", JSON.stringify([...revertedLiked]));
+      }
     }
   };
 
@@ -121,7 +212,24 @@ export function PublicFeedView() {
                   <p className="text-[10px] opacity-60">
                     {formatDate(reflection.date)}
                   </p>
-                  <Heart className="w-4 h-4 text-[#4A3528] opacity-40" />
+                  <button
+                    onClick={() => handleLike(reflection.id)}
+                    className="flex items-center gap-1.5 p-2 rounded-lg hover:bg-black/5 transition-colors group"
+                    aria-label={likedPosts.has(reflection.id) ? "Unlike this reflection" : "Like this reflection"}
+                  >
+                    <Heart
+                      className={`w-5 h-5 transition-all ${
+                        likedPosts.has(reflection.id)
+                          ? "fill-[#F4A7B9] text-[#F4A7B9] scale-110"
+                          : "text-[#4A3528] opacity-40 group-hover:scale-110"
+                      }`}
+                    />
+                    {reflection.likes > 0 && (
+                      <span className="text-[12px] font-bold opacity-80">
+                        {reflection.likes}
+                      </span>
+                    )}
+                  </button>
                 </div>
               </div>
             ))}

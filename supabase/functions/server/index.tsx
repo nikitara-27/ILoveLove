@@ -61,6 +61,7 @@ app.post("/make-server-b898e3c0/reflections", async (c) => {
       color: color || "#FFD6E0",
       timestamp: Date.now(),
       date: new Date().toISOString(),
+      likes: 0,
     };
     
     await kv.set(`public_reflection:${id}`, JSON.stringify(reflection));
@@ -69,6 +70,50 @@ app.post("/make-server-b898e3c0/reflections", async (c) => {
   } catch (error) {
     console.log("Error posting reflection:", error);
     return c.json({ error: "Failed to post reflection" }, 500);
+  }
+});
+
+// Like a reflection
+app.post("/make-server-b898e3c0/reflections/:id/like", async (c) => {
+  try {
+    const id = c.req.param("id");
+    const reflectionData = await kv.get(`public_reflection:${id}`);
+    
+    if (!reflectionData) {
+      return c.json({ error: "Reflection not found" }, 404);
+    }
+    
+    const reflection = JSON.parse(reflectionData);
+    reflection.likes = (reflection.likes || 0) + 1;
+    
+    await kv.set(`public_reflection:${id}`, JSON.stringify(reflection));
+    
+    return c.json({ success: true, likes: reflection.likes });
+  } catch (error) {
+    console.log("Error liking reflection:", error);
+    return c.json({ error: "Failed to like reflection" }, 500);
+  }
+});
+
+// Unlike a reflection
+app.post("/make-server-b898e3c0/reflections/:id/unlike", async (c) => {
+  try {
+    const id = c.req.param("id");
+    const reflectionData = await kv.get(`public_reflection:${id}`);
+    
+    if (!reflectionData) {
+      return c.json({ error: "Reflection not found" }, 404);
+    }
+    
+    const reflection = JSON.parse(reflectionData);
+    reflection.likes = Math.max(0, (reflection.likes || 0) - 1);
+    
+    await kv.set(`public_reflection:${id}`, JSON.stringify(reflection));
+    
+    return c.json({ success: true, likes: reflection.likes });
+  } catch (error) {
+    console.log("Error unliking reflection:", error);
+    return c.json({ error: "Failed to unlike reflection" }, 500);
   }
 });
 
